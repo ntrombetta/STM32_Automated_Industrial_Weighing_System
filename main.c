@@ -81,6 +81,228 @@ int main(void)
 }
 
 /*******************************************************************************
+ *  LCD State Machine
+ *   	- Processes the user's touch to navigate through each screen
+ *  	  on the LCD display
+ *  	- 1st layer controls the flow and display of main menu items 1-6
+ *  	- 2nd layer controls the flow of each main menu item's screens
+ *  	- If necessary there is a 3rd layer for main menu item screens that
+ *  	  have additional sub screens such as Initial Setup 2 scale code screens
+ *  	  and Initial Setup 6 test duration screens, etc.
+ ******************************************************************************/
+void process_screen_state(void)
+{
+	states_1 = state.last_screen;												// Screens for main menu items 1-6
+	states_2 = state.sub_screen;												// Sub screens for each main menu item
+	states_3 = state.code_screen;												// Scale code screens for Initial Setup 2
+	states_4 = state.duration_screen;											// Screens for auto and manual test duration for calibration
+	states_5 = state.cal_screen;												// Calibration screens
+	states_6 = state.sub_cal_screen;											// Calibration mode screens
+	states_7 = state.sys_data_screen;											// System Data screens
+	states_8 = state.io_screen;													// Input and output definition screens
+	states_9 = state.password_screen;											// System password screens
+
+	switch(states_1)															// Main menu items 1-6 and System Run screen
+	{
+		default:
+			break;
+		case RUN_SCREEN:
+			process_run_screen(); 												// Process run screen touch
+		break;
+		case INIT_SETUP:														// Main menu item #1 has been selected
+			switch(states_2)													// Initial Setup 1-6 screens
+			{
+				default:
+					break;
+				case SETUP_1:
+					process_init_setup_1();										// Process user input for initial setup 1 screen
+				break;
+				case SETUP_2:
+					process_init_setup_2();										// User has navigated to initial setup 2 screen
+					switch(states_3)											// If scale code data button is pressed
+					{
+						default:
+							break;
+						case CODE_DATA_1:
+							process_code_data_1();								// User has navigated to scale code data 1 screen
+						break;
+						case CODE_DATA_2:
+							process_code_data_2();								// User has navigated to scale code data 2 screen
+						break;
+						case CODE_DATA_3:
+							process_code_data_3();								// User has navigated to scale code data 3 screen
+						break;
+					}
+				break;
+				case SETUP_3:
+					process_init_setup_3();										// User has navigated to initial setup 3 screen
+				break;
+				case SETUP_4:
+					process_init_setup_4();										// User has navigated to initial setup 4 screen
+				break;
+				case SETUP_5:
+					process_init_setup_5();										// User has navigated to initial setup 5 screen
+				break;
+				case SETUP_6:
+					process_init_setup_6();										// User has navigated to initial setup 6 screen
+					switch(states_4)											// Manual or Auto duration buttons have been pressed
+					{
+						default:
+							break;
+						case MANUAL:
+							process_manual_duration();							// Manual duration test setup has been selected
+						break;
+						case AUTO:
+							process_auto_duration();							// Auto duration test setup has been selected
+						break;
+						case BEGIN_AUTO:
+							process_begin_duration();							// User has begun the duration testing
+						break;
+						case BEGIN_MANUAL:
+							begin_manual_duration();							// Process the duration testing results
+						break;
+					}
+				break;
+			}
+		break;
+		case CALIBRATION: 														// Main menu item #2 has been selected
+			switch(states_5)
+			{
+				default:
+					break;
+				case NO_CAL:
+					process_calibration();										// Process calibration main screen touch
+				break;
+				case ZERO:
+					process_zero_cal();											// User has selected zero calibration item
+					switch(states_6)											// Begin auto or manual zero buttons have been pressed
+					{
+						default:
+							break;
+						case BEGIN_AUTO_ZERO:
+							process_begin_auto_zero();							// Start auto zero calibration
+						break;
+						case BEGIN_MAN_ZERO:
+							process_begin_man_zero();							// Start manual zero calibration
+						break;
+					}
+				break;
+				case SPAN:
+					process_span_cal();											// User has selected span calibration item
+					switch(states_6)											// Auto or Manual span buttons have been pressed
+					{
+						default:
+							break;
+						case BEGIN_AUTO_SPAN:
+							run_auto_span();									// Begin auto span calibration
+						break;
+					}
+				break;
+				case MATERIAL:
+					process_material_cal();										// User has selected material calibration item
+				break;
+				case MATERIAL_COMPLETE:
+					material_cal_complete();
+				break;
+			}
+		break;
+		case SYS_DATA:															// Main menu item #3 has been selected
+			switch(states_7)
+			{
+				default:
+					break;
+				case SYSDATA_1:
+					process_sys_data_1();										// Process user input for System Data 1 screen
+				break;
+				case SYSDATA_2:
+					process_sys_data_2();										// Process user input for System Data 2 screen
+				break;
+				case SYSDATA_3:
+					process_sys_data_3();										// Process user input for System Data 3 screen
+				break;
+				case SYSDATA_4:
+					process_sys_data_4();										// Process user input for System Data 4 screen
+				break;
+				case SYSDATA_5:
+					process_sys_data_5();										// Process user input for System Data 5 screen
+				break;
+			}
+		break;
+		case IO_DEFINE:															// Main menu item #4 has been selected
+			switch(states_8)
+			{
+				default:
+					break;
+				case INPUT1:
+					process_io_define();										// Input setup 1 screen
+				break;
+				case INPUT2:
+					process_input_2();											// Input setup 2 screen
+				break;
+				case OUTPUT1:
+					process_output_1();											// Output setup 1 screen
+				break;
+				case OUTPUT2:
+					process_output_2();											// Output setup 2 screen
+				break;
+				case ANALOG:
+					process_analog();											// Analog output screen
+				break;
+				case SIMULATED:
+					process_simulated();										// Simulated output setup screen
+				break;
+				case TOTALIZER:
+					process_totalizer();
+				break;
+				case ALARM1:
+					process_alarm_1();											// Rate alarm setup screen
+				break;
+				case ALARM2:
+					process_alarm_2();											// Load alarm setup screen
+				break;
+				case ALARM3:
+					process_alarm_3();											// Speed alarm setup screen
+				break;
+				case RESET_ALARM:
+					process_reset_alarm();										// Alarm reset setup screen
+				break;
+			}
+		break;
+		case COMMUNICATION:
+			process_comms();													// Main menu item #5 has been selected
+		break;
+		case SETTINGS:
+			process_settings();
+		break;
+		case PASSWORD:
+			switch(states_9)
+			{
+				default:
+					break;
+				case NO_PASSWORD:
+					process_password();											// Process password main screen touch
+				break;
+				case CURRENT:
+					process_current_password();									// Ask user to enter the current system password
+				break;
+				case NEW:
+					process_new_password();										// Ask user to enter new password
+				break;
+				case RE_ENTER:
+					process_re_entry();											// Ask user to re-enter new password
+				break;
+				case ENTER:
+					process_enter_password();									// Process the password user entered to unlock the system
+				break;
+			}
+		break;
+		case USB:
+			process_usb();
+		break;
+	}
+}
+
+/*******************************************************************************
  *  RAM Scrub
  *  	- Copies 0x77777777 to entire RAM location and reads it back
  *  	- If the data does not match we assume the RAM is corrupted and call
