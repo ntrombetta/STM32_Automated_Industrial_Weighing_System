@@ -21,13 +21,13 @@ Main Program Flowchart:
 *   **save_totals()** - Ring buffer to sequentially write continuous 1-second data to an external EEPROM to prevent premature wear leveling.
 *   **read_totals()** - Called on startup to read an EEPROM address to assist in finding the last known address with valid data.   
 *   **find_eeprom_address()** - Executes a linear search combined with a binary search to find the last EEPROM address the device wrote to.
-*   Recalls the total saved to this address and increments the address for the next write to the EEPROM chip. 
+    *   Recalls the total saved to this address and increments the address for the next write to the EEPROM chip. 
 *   **get_totals()** - Passes both the address and total value(s) the linear/binary search return to the global FW variables. 
 
 ### 📌 main.c: Runtime Execution & Complex State Machine 
 *   **main()** - Demonstrates a RAM scrub immediately after initializing the system core clock to ensure data integrity before nominal operation.
 *   **get_reset_reason()** - Demonstrates querying the STM32 on every power cycle to determine exactly why the MCU was reset/powered off.
-*   This is a diagnostic tool for operation in the field and will drive the LCD display to show an error message if a proper power down sequence wasn't executed. 
+    *   This is a diagnostic tool for operation in the field and will drive the LCD display to show an error message if a proper power down sequence wasn't executed. 
 *   **process_screen_state()** - Example of a multi-layer nested state machine for transitioning between screens on the LCD display.
 
 ### 📌 scale_calc.c: Totalizer Output (OPTO22) & Precision Math
@@ -41,7 +41,7 @@ Main Program Flowchart:
 ### 📌 touch_controller.c: Low-Level I2C Interface & HMI Coordinate Decoding
 *   **process_touch_controller()** - Driver to process user touch on an LCD-TFT resitive touch screen and translate the ADC readings to X&Y coordinates that map to pixels on the display. 
 *   **get_touch()** - Translate touch controller data to pixels on the display to process which "button" the user has pressed.
-*    These flags drive the state machines in the entire project some of which can be seen in main.c.  
+    *    These flags drive the state machines in the entire project some of which can be seen in main.c.  
 
 
 
