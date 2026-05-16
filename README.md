@@ -43,14 +43,12 @@ Main Program Flowchart:
 
 
 ### 📌 prox_sensor.c: Asynchronous Input Capture & Speed Tracking
-*   **HAL_TIM_IC_CaptureCallback:** Driven asynchronously by an STM32 Timer Input Capture hardware interrupt event (`HAL_TIM_IC_CaptureCallback`).
-*   **16-Bit Roll-Over Mitigation:** Tracks and recalculates timing metrics across physical timer count wrap-around margins (`0xFFFF`), eliminating catastrophic timing delta drop-offs when a pulse bridges the hardware overflow boundary.
-*   **Arithmetic Fault Defense:** Implements localized conditional checks to neutralize division-by-zero errors across dynamic timing variables and baseline sensor denominators.
-*   **Dynamic Rolling Filter:** Aggregates raw microsecond-interval pulse captures into a 1000-sample running-average filter array to flatten high-frequency signaling noise before passing data to the master weight calculation loops.
+*   **HAL_TIM_IC_CaptureCallback:** - Timer 13 callback to calculate the frequency of the proximity sensor.
+*   With a nominal frequency calculated during a calibration period, we can determine the exact belt speed based on the delta between the nominal and calculated frequencies.
 
 ### 📌 touch_controller.c: Low-Level I2C Interface & HMI Coordinate Decoding
-*   **process_touch_controller()** Driver to process user touch on an LCD-TFT resitive touch screen and translate the ADC readings to X&Y coordinates that map to pixels on the display 
-*   **get_touch()** Translate touch controller data to pixels on the display to process which "button" the user has pressed; These flags drive the state machines in the entire project some of which can be seen in main.c  
+*   **process_touch_controller()** - Driver to process user touch on an LCD-TFT resitive touch screen and translate the ADC readings to X&Y coordinates that map to pixels on the display. 
+*   **get_touch()** - Translate touch controller data to pixels on the display to process which "button" the user has pressed; These flags drive the state machines in the entire project some of which can be seen in main.c.  
 
 
 
