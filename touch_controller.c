@@ -6,6 +6,10 @@
         - Poll TSC IRQ pin to determine if a valid touch has been detected 
         - Convert ADC readings to X&Y coordinates to determine which pixels
           were touched on the LCD display 
+        - NOTE: This function is only ever called on the falling edge of the 
+          IRQ pin on the TSC. The IRQ pin is polled every main loop. 
+          The HAL delays are intentionally placed to allow the TSC drivers 
+          to settle after activating them. 
  ******************************************************************************/
 void process_touch_controller(void)
 {
@@ -25,24 +29,38 @@ void process_touch_controller(void)
 
 	if ( HAL_I2C_Master_Transmit(&hi2c1, TC_WRITE << 1, &activate_x, 1, 10) == HAL_OK)   // Activate X&Y touch drivers
 		HAL_Delay(1);
+    else 
+		return;
 
 	if ( HAL_I2C_Master_Transmit(&hi2c1, TC_WRITE << 1, &measure_x, 1, 10) == HAL_OK)   // Measure X touch drivers
 	{
 		if ( HAL_I2C_Master_Receive(&hi2c1, TC_READ << 1, (uint8_t *)receive_x, 2, 10) == HAL_OK)
 			HAL_Delay(1);
+        else 
+		    return;
 	}
+    else 
+		return;
 
 	if ( HAL_I2C_Master_Transmit(&hi2c1, TC_WRITE << 1, &activate_y, 1, 10) == HAL_OK)   // Activate Y touch drivers
 		HAL_Delay(1);
+    else 
+		return;
 
 	if ( HAL_I2C_Master_Transmit(&hi2c1, TC_WRITE << 1, &measure_y, 1, 10) == HAL_OK)   // Measure Y touch drivers
 	{
 		if ( HAL_I2C_Master_Receive(&hi2c1, TC_READ << 1, (uint8_t *)receive_y, 2, 10) == HAL_OK)
 			HAL_Delay(1);
+        else 
+		    return;
 	}
+    else 
+		return;
 
 	if ( HAL_I2C_Master_Transmit(&hi2c1, TC_WRITE << 1, &power_down, 1, 10) == HAL_OK)   // Power down TSC 
 		HAL_Delay(1);
+    else 
+		return;
 
 	touch_detected = HAL_GPIO_ReadPin(TOUCH_DETECT_GPIO_Port, TOUCH_DETECT);	// Poll TC IRQ pin
 
