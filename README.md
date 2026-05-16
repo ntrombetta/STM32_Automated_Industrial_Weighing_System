@@ -18,37 +18,30 @@ Main Program Flowchart:
 
 ## ⚙️ Firmware Source Code Examples
 ### 📌 eeprom.c: Non-Volatile Memory & Wear Leveling
-*   **Silicon Lifespan Preservation:** Employs a ring-buffered tracking pointer to sequentially write continuous 1-second data logs across a 4MB EEPROM chip, protecting the silicon from premature single-address burnouts.
-*   **Look-Ahead Block Management:** Intercepts upcoming sector boundaries to trigger sector erases ahead of active write states, completely removing write-latency execution drops.
-*   **Anti-Lock Polling Guards:** Enforces strict execution limits on status register polling loops via `HAL_GetTick()` delta timers, eliminating the risk of a firmware lockup if an external memory chip suffers a localized bus fault.
-### 📌 Module D: Fast State Recovery Engine (`boot_recovery.c`)
-*   **Zero-Metadata Architecture:** Because the physical records' positioning inherently defines the chronological advancement of the logs, the filesystem requires zero master indexing. If an unexpected power outage occurs mid-write, the data structure cannot corrupt.
-*   **Hybrid Search Optimization:** On startup, the firmware executes a rapid linear sweep across 4KB sector margins (`addr += 4096`) checking for unwritten blocks (`0xFFFFFFFF`). Once trapped, it switches to a localized **Binary Search** to find the system's last valid log in a fraction of a millisecond.
-*   **Word-Aligned Masking:** Utilizes a bitwise alignment mask (`& ~0x03`) during the binary search phase to force all midpoints to land perfectly on 32-bit boundary alignments, neutralizing any architectural hardware unaligned-access faults.
-*   
-*   
-### 📌 main.c: Deterministic Runtime Execution
-*   **Pre-Init Memory Validation:** Executes a destructive bare-metal power-on memory matrix check (`RAM_scrub()`) immediately post-clock initialization and prior to `HAL_Init()`. This validates physical address and data bus integrity before the C runtime environment maps or utilizes active stack frames.
-*   **Defense-in-Depth Diagnostics:** Evaluates hardware state registers via `get_reset_reason()` on boot. If an abnormal cycle occurs (Brownouts, Independent Watchdogs, Low Power entry flags), it bypasses silent booting to immediately force a localized warning dialogue onto the display.
-*   **Low-Overhead Scheduler:** Avoids the context-switching overhead of a heavy RTOS task scheduler; operates as a lean bare-metal loop timed via a hardware-decremented 1ms `sys.system_tick` timer flag.
-### 📌 Module G: Multi-Layered UI Routing (`ui_state_machine.c`)
-*   **Data Encapsulation Design:** Restricts all screen state mappings and transitions to a private `typedef enum` isolated strictly within the `.c` source module. This ensures outer peripheral modules cannot accidentally modify structural application navigation layers.
-*   **Nested Switch-Case Execution:** Processes active screen changes, password verification loops, and calibration state jumps through nested state blocks, routing raw decoded boundary coordinate flags directly into execution subroutines.
+*   **save_totals()** - Employs a ring-buffered tracking pointer to sequentially write continuous 1-second data to an external EEPROM chip, protecting the silicon from premature single-address burnouts.
+*   **read_totals()** - Called on startup to read an EEPROM address to assist in finding the last known address with valid data.   
+*   **find_eeprom_address()** - Executes a linear search combined with a binary search to find the last EEPROM address the device wrote to.
+*   Recalls the total saved to this address and increments the address for the next write to the EEPROM chip. 
+*   **get_totals()** - Passes both the address and total value(s) the linear/binary search return to the global FW variables. 
 
+### 📌 main.c: Runtime Execution & Complex State Machine 
+*   **main()** - Demonstrates a RAM scrub immediately after initializing the system core clock to ensure data integrity before nominal operation.
+*   **get_reset_reason()** - Demonstrates querying the STM32 on every power cycle to determine exactly why the MCU was reset/powered off.
+*   This is a diagnostic tool for operation in the field and will drive the LCD display to show an error message if a proper power down sequence wasn't executed. 
+*   **process_screen_state()** - Example of a multi-layer nested state machine for transitioning between screens on the LCD display.
 
-### 📌 Module B: Real-Time Signal Processing & Precision Math
-*   **IEEE 754 Precision Defense:** Implements a dual-layer **Kahan Summation Algorithm** to resolve tiny fractional increments (`< 0.0019`) into massive running accumulation total structures over continuous 10ms integration loops. This completely eliminates mantissa-shifting truncation errors.
-*   **Algebraic Error Tracking:** Maintains running error compensation variables (`local_error`, `master_error`) to trap truncated low-order bits, carrying them forward into subsequent integration steps for permanent numerical tracking stability.
-*   **Non-Blocking Pulse Generation:** Leverages non-blocking `HAL_GetTick()` delta matching inside `send_totalizer` to safely toggle physical Opto22 relays and MODBUS status registers without introducing timing jitter or locking the core execution loop thread.
+### 📌 scale_calc.c: Totalizer Output (OPTO22) & Precision Math
+*   **add_totals()** Implements a Kahan Summation Algorithm to resolve IEEE floating point issues.
+*   **send_totalizer()** Accepts the total increment from add_totals() and accumulates until the "bucket" (i.e. 10 Tons) has been processed on the belt and drives an OPTO22 relay.
 
-
-### 📌 prox_sensor.c: Asynchronous Input Capture & Speed Tracking
-*   **HAL_TIM_IC_CaptureCallback:** - Timer 13 callback to calculate the frequency of the proximity sensor.
+### 📌 prox_sensor.c: Input Capture & Speed Tracking
+*   **HAL_TIM_IC_CaptureCallback()** - Timer 13 callback to calculate the frequency of the proximity sensor.
 *   With a nominal frequency calculated during a calibration period, we can determine the exact belt speed based on the delta between the nominal and calculated frequencies.
 
 ### 📌 touch_controller.c: Low-Level I2C Interface & HMI Coordinate Decoding
 *   **process_touch_controller()** - Driver to process user touch on an LCD-TFT resitive touch screen and translate the ADC readings to X&Y coordinates that map to pixels on the display. 
-*   **get_touch()** - Translate touch controller data to pixels on the display to process which "button" the user has pressed; These flags drive the state machines in the entire project some of which can be seen in main.c.  
+*   **get_touch()** - Translate touch controller data to pixels on the display to process which "button" the user has pressed.
+*    These flags drive the state machines in the entire project some of which can be seen in main.c.  
 
 
 
