@@ -1,6 +1,57 @@
 #includes .... 
 
 /*******************************************************************************
+ *  Main State Machine States (normally inside main.h) 
+ ******************************************************************************/
+typedef enum
+{
+	RUN_SCREEN 		= 0,
+	RUN_DIALOGUE 	= 1,
+	MAIN_SCREEN 	= 2,
+	CALIBRATION 	= 3,
+	INIT_SETUP 		= 4,
+	SYS_DATA 		= 5,
+	IO_DEFINE 		= 6,
+	COMMUNICATION 	= 7,
+	SETTINGS 		= 8,
+	PASSWORD 		= 9,
+	USB 			= 10
+}screen_handle;
+extern screen_handle screens;
+
+/*******************************************************************************
+ *  Process Screen State Struct Handler (normally inside main.h)
+ ******************************************************************************/
+typedef struct state_handle
+{
+	uint8_t last_screen;														// State 1
+	uint8_t sub_screen;															// State 2
+	uint8_t code_screen;														// State 3
+	uint8_t duration_screen;													// State 4
+	uint8_t cal_screen;															// State 5
+	uint8_t sub_cal_screen;														// State 6
+	uint8_t sys_data_screen;													// State 7
+	uint8_t io_screen;															// State 8
+	uint8_t password_screen;													// State 9
+	uint8_t last_state;															// Last state assigned
+	bool home_screen;															// Main Menu screen flag
+}state_handle;
+extern state_handle state;
+
+/*******************************************************************************
+ *  State machine for LCD screens
+ ******************************************************************************/
+static uint8_t states_1;														// Main menu items 1-6
+static uint8_t states_2;													    // Initial Setup screens 1-6
+static uint8_t states_3;														// Scale code data screens for Initial Setup 2
+static uint8_t states_4;														// Test duration screens for Initial Setup 6
+static uint8_t states_5;														// Calibration screens
+static uint8_t states_6;														// Calibration mode screens
+static uint8_t states_7;														// System Data 1-6 screens
+static uint8_t states_8;														// Input & Output Setup screens
+static uint8_t states_9;														// Password Setup screens
+
+/*******************************************************************************
  *  Main Loop
  *    - Initialize all necessary drivers, peripherals, variables and GPIO pins
  *    - Loop runs every 1mS (driven from SysTick_Handler)
@@ -29,8 +80,6 @@ int main(void)
 
 	if (reset != RESET_CAUSE_POWER_ON_POWER_DOWN_RESET)							// Normal power down sequence did not occur
 		display_reset_reason();													// Display the reset reason on the LCD display 
-
-	check_crc();																// 
 
 	run_menu();																	// Draw run screen
 	update_run_screen();														// Update run variables
