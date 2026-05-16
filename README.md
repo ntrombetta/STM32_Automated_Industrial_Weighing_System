@@ -18,7 +18,7 @@ Main Program Flowchart:
 
 ## ⚙️ Firmware Source Code Examples
 ### 📌 eeprom.c: Non-Volatile Memory & Wear Leveling
-*   **save_totals()** - Employs a ring-buffered tracking pointer to sequentially write continuous 1-second data to an external EEPROM chip, protecting the silicon from premature single-address burnouts.
+*   **save_totals()** - Ring buffer to sequentially write continuous 1-second data to an external EEPROM to prevent premature wear leveling.
 *   **read_totals()** - Called on startup to read an EEPROM address to assist in finding the last known address with valid data.   
 *   **find_eeprom_address()** - Executes a linear search combined with a binary search to find the last EEPROM address the device wrote to.
 *   Recalls the total saved to this address and increments the address for the next write to the EEPROM chip. 
