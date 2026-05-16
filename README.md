@@ -43,16 +43,14 @@ Main Program Flowchart:
 
 
 ### 📌 prox_sensor.c: Asynchronous Input Capture & Speed Tracking
-*   **Hardware Interface:** Driven asynchronously by an STM32 Timer Input Capture hardware interrupt event (`HAL_TIM_IC_CaptureCallback`).
+*   **HAL_TIM_IC_CaptureCallback:** Driven asynchronously by an STM32 Timer Input Capture hardware interrupt event (`HAL_TIM_IC_CaptureCallback`).
 *   **16-Bit Roll-Over Mitigation:** Tracks and recalculates timing metrics across physical timer count wrap-around margins (`0xFFFF`), eliminating catastrophic timing delta drop-offs when a pulse bridges the hardware overflow boundary.
 *   **Arithmetic Fault Defense:** Implements localized conditional checks to neutralize division-by-zero errors across dynamic timing variables and baseline sensor denominators.
 *   **Dynamic Rolling Filter:** Aggregates raw microsecond-interval pulse captures into a 1000-sample running-average filter array to flatten high-frequency signaling noise before passing data to the master weight calculation loops.
 
 ### 📌 touch_controller.c: Low-Level I2C Interface & HMI Coordinate Decoding
-*   **Analog Settling Guards:** Implements strict command-to-read delays (`HAL_Delay(1)`) inside initialization and query sequencing to satisfy the physical charge-transfer settling windows mandated by the resistive touch controller hardware.
-*   **ADC-to-Pixel Interpolation:** Translates raw 12-bit resistive matrix data vectors directly into linearized screen space coordinates using coordinate-inversion and ratio-scaling mapping matrices.
-*   **Non-Branching Bounding Evaluations:** Employs optimized bitwise validation arrays (`&`) over traditional logical gates (`&&`) inside `get_touch()`. This evaluates 2D bounding boxes simultaneously, cutting CPU pipeline branch mispredictions inside high-frequency processing loops.
-*   **Context-Aware Spatial Filtering:** Implements conditional menu overlay constraints (`state.last_screen != RUN_SCREEN`) to cleanly isolate active dialogue box inputs from underlying menu button coordinates.
+*   **process_touch_controller()** Driver to process user touch on an LCD-TFT resitive touch screen and translate the ADC readings to X&Y coordinates that map to pixels on the display 
+*   **get_touch()** Translate touch controller data to pixels on the display to process which "button" the user has pressed; These flags drive the state machines in the entire project some of which can be seen in main.c  
 
 
 
