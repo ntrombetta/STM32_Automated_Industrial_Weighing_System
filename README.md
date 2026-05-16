@@ -1,4 +1,4 @@
-## This repository showcases the full hardware and bare-metal firmware architectures for a high-reliability industrial monitoring and belt scale integration platform.
+This repository showcases the full hardware and bare-metal firmware architectures for a high-reliability industrial monitoring and belt scale integration platform.
 
 🔒 Repository Disclaimer: Due to corporate NDA restrictions, the architectural assets and codebase variations hosted here are generalized, platform-agnostic middleware layouts. They are designed to demonstrate system-level planning, memory management, and deterministic execution without exposing proprietary commercial IP.
 
