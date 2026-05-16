@@ -106,7 +106,7 @@ void process_screen_state(void)
 	{
 		default:
 			break;
-		case RUN_SCREEN:
+		case RUN_SCREEN:                                                        // Main screen with total, flow rate, belt speed and sidebar for diagnostics, alarms, totals, and main menu 
 			process_run_screen(); 												// Process run screen touch
 		break;
 		case INIT_SETUP:														// Main menu item #1 has been selected
@@ -166,7 +166,7 @@ void process_screen_state(void)
 			}
 		break;
 		case CALIBRATION: 														// Main menu item #2 has been selected
-			switch(states_5)
+			switch(states_5)                                                    // Determine cal state 
 			{
 				default:
 					break;
@@ -202,7 +202,7 @@ void process_screen_state(void)
 					process_material_cal();										// User has selected material calibration item
 				break;
 				case MATERIAL_COMPLETE:
-					material_cal_complete();
+					material_cal_complete();                                    // Material cal complete; process user touch 
 				break;
 			}
 		break;
@@ -252,7 +252,7 @@ void process_screen_state(void)
 					process_simulated();										// Simulated output setup screen
 				break;
 				case TOTALIZER:
-					process_totalizer();
+					process_totalizer();                                        // Totalizer output screen 
 				break;
 				case ALARM1:
 					process_alarm_1();											// Rate alarm setup screen
@@ -272,7 +272,7 @@ void process_screen_state(void)
 			process_comms();													// Main menu item #5 has been selected
 		break;
 		case SETTINGS:
-			process_settings();
+			process_settings();                                                // Main menu item #6 has been selected 
 		break;
 		case PASSWORD:
 			switch(states_9)
@@ -297,7 +297,7 @@ void process_screen_state(void)
 			}
 		break;
 		case USB:
-			process_usb();
+			process_usb();                                                      // User is trying to extract or load parameter files 
 		break;
 	}
 }
