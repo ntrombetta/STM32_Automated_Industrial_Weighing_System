@@ -39,11 +39,11 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 			if (prox1.nominal_calculated == false && setup.duration_finished == true)	// Once test duration is finished establish baseline frequency for prox sensor
 			{
 				scale.nominal_speed = prox1.calculated_speed;					// Pass averaged calculated speed to nominal speed
-				flash_scale.nominal_speed = scale.nominal_speed;
+				flash_scale.nominal_speed = scale.nominal_speed;                // Pass to flash buffer
 				prox1.nominal_calculated = true;								// Set nominal calculated speed flag
-				write_flash_scale();
+				write_flash_scale();                                            // Save nominal speed to flash memory 
 			}
-			else
+			else                                                                // Nominal operation 
 			{
 				if (scale.nominal_speed == 0)									// Prevent divide by 0
 					scale.nominal_speed = 1;
