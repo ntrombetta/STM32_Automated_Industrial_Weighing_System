@@ -1,6 +1,6 @@
 This repository showcases the full hardware and bare-metal firmware architectures for a high-reliability industrial monitoring and belt scale integration platform.
 
-🔒 Repository Disclaimer: Due to corporate NDA restrictions, the architectural assets and codebase variations hosted here are generalized, platform-agnostic middleware layouts. They are designed to demonstrate system-level planning, memory management, and deterministic execution without exposing proprietary commercial IP.
+🔒 Repository Disclaimer: Due to corporate NDA restrictions, the system architecture images and source files are generalized middleware layouts. They are strictly designed to demonstrate how I handle hardware-software design, memory safety, and timing loops without exposing any confidential company code.
 
 ## 🗺️ 1. Architecture Designs
 
