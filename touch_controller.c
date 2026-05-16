@@ -1,10 +1,19 @@
+/*******************************************************************************
+ *  Process Touch Controller 
+		- Active touch screen controller X & Y drivers 
+		- Measure X & Y positions respectively
+		- Power down TSC
+        - Poll TSC IRQ pin to determine if a valid touch has been detected 
+        - Convert ADC readings to X&Y coordinates to determine which pixels
+          were touched on the LCD display 
+ ******************************************************************************/
 void process_touch_controller(void)
 {
 	static uint8_t touch_detected;
 	static uint8_t touch_counter;
 
 	static uint16_t x, y, xr, yr;
-	static uint8_t receive_x[2], receive_y[2], receive_z1[2], receive_z2[2];
+	static uint8_t receive_x[2], receive_y[2];
 
 	static uint8_t power_down = 0x00;
 
@@ -14,40 +23,25 @@ void process_touch_controller(void)
 	static uint8_t activate_y = 0x94;
 	static uint8_t measure_y = 0xD4;
 
-	static uint8_t measure_z1 = 0xE4;
-	static uint8_t measure_z2 = 0xF4;
-
 	if ( HAL_I2C_Master_Transmit(&hi2c1, TC_WRITE << 1, &activate_x, 1, 10) == HAL_OK)   // Activate X&Y touch drivers
 		HAL_Delay(1);
 
-	if ( HAL_I2C_Master_Transmit(&hi2c1, TC_WRITE << 1, &measure_x, 1, 10) == HAL_OK)   // Activate X&Y touch drivers
+	if ( HAL_I2C_Master_Transmit(&hi2c1, TC_WRITE << 1, &measure_x, 1, 10) == HAL_OK)   // Measure X touch drivers
 	{
 		if ( HAL_I2C_Master_Receive(&hi2c1, TC_READ << 1, (uint8_t *)receive_x, 2, 10) == HAL_OK)
 			HAL_Delay(1);
 	}
 
-	if ( HAL_I2C_Master_Transmit(&hi2c1, TC_WRITE << 1, &activate_y, 1, 10) == HAL_OK)   // Activate X&Y touch drivers
+	if ( HAL_I2C_Master_Transmit(&hi2c1, TC_WRITE << 1, &activate_y, 1, 10) == HAL_OK)   // Activate Y touch drivers
 		HAL_Delay(1);
 
-	if ( HAL_I2C_Master_Transmit(&hi2c1, TC_WRITE << 1, &measure_y, 1, 10) == HAL_OK)   // Activate X&Y touch drivers
+	if ( HAL_I2C_Master_Transmit(&hi2c1, TC_WRITE << 1, &measure_y, 1, 10) == HAL_OK)   // Measure Y touch drivers
 	{
 		if ( HAL_I2C_Master_Receive(&hi2c1, TC_READ << 1, (uint8_t *)receive_y, 2, 10) == HAL_OK)
 			HAL_Delay(1);
 	}
 
-	if ( HAL_I2C_Master_Transmit(&hi2c1, TC_WRITE << 1, &measure_z1, 1, 10) == HAL_OK)   // Activate X&Y touch drivers
-	{
-		if ( HAL_I2C_Master_Receive(&hi2c1, TC_READ << 1, (uint8_t *)receive_z1, 2, 10) == HAL_OK)
-			HAL_Delay(1);
-	}
-
-	if ( HAL_I2C_Master_Transmit(&hi2c1, TC_WRITE << 1, &measure_z2, 1, 10) == HAL_OK)   // Activate X&Y touch drivers
-	{
-		if ( HAL_I2C_Master_Receive(&hi2c1, TC_READ << 1, (uint8_t *)receive_z2, 2, 10) == HAL_OK)
-			HAL_Delay(1);
-	}
-
-	if ( HAL_I2C_Master_Transmit(&hi2c1, TC_WRITE << 1, &power_down, 1, 10) == HAL_OK)   // Activate X&Y touch drivers
+	if ( HAL_I2C_Master_Transmit(&hi2c1, TC_WRITE << 1, &power_down, 1, 10) == HAL_OK)   // Power down TSC 
 		HAL_Delay(1);
 
 	touch_detected = HAL_GPIO_ReadPin(TOUCH_DETECT_GPIO_Port, TOUCH_DETECT);	// Poll TC IRQ pin
@@ -56,29 +50,29 @@ void process_touch_controller(void)
 	{
 		touch_counter++;
 
-		x = (receive_x[0] << 4) | receive_x[1];										// Convert 8-bit values to 16-bit for X reading
-		y = (receive_y[0] << 4) | receive_y[1]; 									// Convert 8-bit values to 16-bit for Y reading
+		x = (receive_x[0] << 4) | receive_x[1];									// Convert 8-bit values to 16-bit for X reading
+		y = (receive_y[0] << 4) | receive_y[1]; 								// Convert 8-bit values to 16-bit for Y reading
 
-		y = 4095 - y;																// Invert Y-readings
-		yr = (y / 8);																// Convert Y ADC reading to Y-pixel
+		y = 4095 - y;															// Invert Y-readings
+		yr = (y / 8);															// Convert Y ADC reading to Y-pixel
 
 
-		if (yr < 0)																	// Upper and lower pixel guards
+		if (yr < 0)																// Upper and lower pixel guards
 			yr = 0;
 		else if (yr > MAX_Y_RES)
 			yr = MAX_Y_RES - 1;
 
-		xr = x / 5;																	// Convert X ADC reading to X-pixel
+		xr = x / 5;																// Convert X ADC reading to X-pixel
 
-		if (xr < 0)																	// Upper and lower pixel guards
+		if (xr < 0)																// Upper and lower pixel guards
 			xr = 0;
 		else if (xr > MAX_X_RES)
 			xr = MAX_X_RES - 1;
 
-		sys.x_pixel = xr;															// Pass data to system struct to process touch coordinates
+		sys.x_pixel = xr;														// Pass data to system struct to process touch coordinates
 		sys.y_pixel = yr;
 
-		if (touch_counter > 3)
+		if (touch_counter > 3)													// Filter out "light" touches or taps; We want 3+ readings to determine an actual touch 
 		{
 			touch.flag = true;
 			touch_counter = 0;
@@ -88,7 +82,6 @@ void process_touch_controller(void)
 
 /*******************************************************************************
  *  Processes the touch for all screens
- *  	- Runs in the main loop
  *  	- Each button on the keypad is defined by the box it is enclosed in
  *  	- Once a button is flag the corresponding flag is set
  *  	- Button flags are cleared in the appropriate screen routine
@@ -176,5 +169,5 @@ void get_touch(void)
 		touch.status = true;													// Set touch status flag (run system dialogue box)
 
 	else if ( (sys.x_pixel >= 220) & (sys.x_pixel <= 320) & (sys.y_pixel >= 270) & (sys.y_pixel <= 330) )
-		touch.exit = true;
+		touch.exit = true;                                                      // Set exit dialogue box flag 
 }
